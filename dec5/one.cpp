@@ -36,18 +36,33 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	while (cur < line.size())
 	{
-		//std::cout << end << ":" << cur;
-		//{
-		//	std::cout << " \t [";
-		//	size_t i = 0;
-		//	for (const auto& cut : cuts)
-		//	{
-		//		std::cout << line.substr(i, cut.first - i)
-		//			<< std::string(cut.second - cut.first, '-');
-		//		i = cut.second;
-		//	}
-		//	std::cout << line.substr(i) << "]" << std::endl;
-		//}
+		/*
+		std::cout << end << ":" << cur;
+		{
+			size_t i = (size_t) std::max(int(end - 3), 0);
+			size_t j = std::min(cur + 3, line.size());
+			std::cout << " \t ["
+				<< std::string(std::min(size_t(3), i), ' ');
+			for (const auto& cut : cuts)
+			{
+				if (cut.second < i) continue;
+				if (cut.first < i)
+				{
+					std::cout << std::string(cut.second - i, '-');
+				}
+				else
+				{
+					std::cout << line.substr(i, cut.first - i)
+						<< std::string(cut.second - cut.first, '-');
+				}
+				i = cut.second;
+				if (i > j) break;
+			}
+			std::cout << line.substr(i, j - i)
+				<< std::string(std::min(size_t(3), j - i), ' ')
+				<< "]" << std::endl;
+		}
+		*/
 
 		if (end == 0)
 		{
@@ -56,13 +71,7 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 		else if (match(line[end - 1], line[cur]))
 		{
-			if (cuts.empty())
-			{
-				cuts.emplace_back(end - 1, cur + 1);
-				end--;
-				cur++;
-			}
-			else if (cuts.back().second < end - 1)
+			if (cuts.empty() || cuts.back().second < end - 1)
 			{
 				cuts.emplace_back(end - 1, cur + 1);
 				end--;
@@ -74,11 +83,18 @@ int main(int /*argc*/, char* /*argv*/[])
 				cuts.back().second = cur + 1;
 				cur++;
 			}
-			else
+			else if (cuts.size() < 2 || cuts[cuts.size() - 2].second < end - 1)
 			{
 				cuts.back().first = end - 1;
 				cuts.back().second = cur + 1;
 				end--;
+				cur++;
+			}
+			else
+			{
+				cuts.pop_back();
+				end = cuts.back().first;
+				cuts.back().second = cur + 1;
 				cur++;
 			}
 		}
@@ -89,17 +105,33 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 	}
 
-	//{
-	//	std::cout << "Result:\t [";
-	//	size_t i = 0;
-	//	for (const auto& cut : cuts)
-	//	{
-	//		std::cout << line.substr(i, cut.first - i)
-	//			<< std::string(cut.second - cut.first, '-');
-	//		i = cut.second;
-	//	}
-	//	std::cout << line.substr(i) << "]" << std::endl;
-	//}
+	/*
+	{
+		std::cout << "Result:";
+		size_t i = (size_t) std::max(int(end - 3), 0);
+		size_t j = std::min(cur + 3, line.size());
+		std::cout << " \t ["
+			<< std::string(std::min(size_t(3), i), ' ');
+		for (const auto& cut : cuts)
+		{
+			if (cut.second < i) continue;
+			if (cut.first < i)
+			{
+				std::cout << std::string(cut.second - i, '-');
+			}
+			else
+			{
+				std::cout << line.substr(i, cut.first - i)
+					<< std::string(cut.second - cut.first, '-');
+			}
+			i = cut.second;
+			if (i > j) break;
+		}
+		std::cout << line.substr(i, j - i)
+			<< std::string(std::min(size_t(3), j - i), ' ')
+			<< "]" << std::endl;
+	}
+	*/
 
 	size_t remaining = line.size();
 	for (const auto& cut : cuts)

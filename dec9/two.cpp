@@ -50,17 +50,16 @@ size_t erase(std::vector<Marble>& marbles, size_t cur)
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-	std::ifstream file("dec9/input.txt");
+	std::ifstream file("dec9/input100x.txt");
 
 	std::string line;
 	std::getline(file, line);
 
-	int players, maxvalue;
-	sscanf(line.c_str(), "%d players; last marble is worth %d points",
+	size_t players, maxvalue;
+	sscanf(line.c_str(), "%ld players; last marble is worth %ld points",
 		&players, &maxvalue);
 
-	std::vector<int> scores(players, 0);
-
+	std::vector<uint64_t> scores(players, 0);
 	std::vector<Marble> marbles;
 	marbles.resize(maxvalue + 1);
 	marbles[0].value = 0;
@@ -68,7 +67,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	marbles[0].next = 0;
 	size_t cur = 0;
 
-	for (int value = 1; value <= maxvalue; value++)
+	for (size_t value = 1; value <= maxvalue; value++)
 	{
 		if (value % 23 == 0)
 		{
@@ -90,8 +89,8 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 	}
 
-	int maxscore = 0;
-	for (int score : scores)
+	uint64_t maxscore = 0;
+	for (uint64_t score : scores)
 	{
 		if (score > maxscore)
 		{

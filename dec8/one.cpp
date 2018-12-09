@@ -1,4 +1,4 @@
-//usr/bin/g++ -O2 dec8/one.cpp -o dec8/.one && time ./dec8/.one; exit
+//usr/bin/g++ -g -O2 dec8/one.cpp -o dec8/.one && time ./dec8/.one; exit
 
 #include <vector>
 #include <iostream>

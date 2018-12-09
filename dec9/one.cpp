@@ -32,8 +32,6 @@ int main(int /*argc*/, char* /*argv*/[])
 		{
 			curpos = (curpos + marbles.size() - 7) % marbles.size();
 
-			// My players are numbered 0 through (player-1), so player 0 placed
-			// marble 0 and player 1 places the marble with value 1.
 			int player = value % players;
 			scores[player] += value;
 			scores[player] += marbles[curpos];

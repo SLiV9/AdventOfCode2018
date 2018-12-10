@@ -92,3 +92,4 @@ int main(int /*argc*/, char* /*argv*/[])
 // Although it would be nice to visualize this in a gif of some sort, I decided
 // to go straight for the quickest solution and look for the timestamp where
 // the flares converged, i.e. where the circumscribing rectangle was smallest.
+// Ha, and that turned out to be a good approach because the time was part two.

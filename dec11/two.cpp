@@ -10,7 +10,7 @@
 #include <cassert>
 
 
-constexpr int serial = 42;
+constexpr int serial = 7803;
 
 constexpr int value(int i, int j)
 {

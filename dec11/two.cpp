@@ -96,6 +96,9 @@ int main(int /*argc*/, char* /*argv*/[])
 				}
 			}
 		}
+
+		std::cout << w << " // " << besti << "," << bestj << "," << bestw
+			<< ": " << bestscore << std::endl;
 	}
 
 	for (int j = bestj - 1; j < bestj + bestw + 1; j++)
@@ -111,7 +114,8 @@ int main(int /*argc*/, char* /*argv*/[])
 		std::cout << std::endl;
 	}
 
-	std::cout << besti << "," << bestj << "," << bestw << ": " << bestscore << std::endl;
+	std::cout << besti << "," << bestj << "," << bestw
+		<< ": " << bestscore << std::endl;
 }
 
 // a b b d

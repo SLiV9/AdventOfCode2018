@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <bitset>
@@ -32,7 +33,7 @@ int main(int /*argc*/, char* /*argv*/[])
 			{
 				for (int jj = j; jj <= j + 2; jj++)
 				{
-					score += value(i, j);
+					score += value(ii, jj);
 				}
 			}
 
@@ -43,6 +44,19 @@ int main(int /*argc*/, char* /*argv*/[])
 				bestj = j;
 			}
 		}
+	}
+
+	for (int j = bestj - 1; j <= bestj + 2 + 1; j++)
+	{
+		for (int i = besti - 1; i <= besti + 2 + 1; i++)
+		{
+			if (bestj < 1 || bestj > 300 || besti < 1 || besti > 300)
+			{
+				std::cout << " " << " #";
+			}
+			else std::cout << " " << std::setw(2) << value(i, j);
+		}
+		std::cout << std::endl;
 	}
 
 	std::cout << besti << "," << bestj << ": " << bestscore << std::endl;

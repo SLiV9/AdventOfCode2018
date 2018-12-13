@@ -115,14 +115,10 @@ int main(int /*argc*/, char* /*argv*/[])
 				newpots.begin() + left + offset,
 				newpots.begin() + left + (max - min + 1) + offset))
 			{
+				std::cout << "Fixpoint; offset " << offset << std::endl;
 				fixpoint = true;
 				drift = (generations - (g + 1)) * offset;
 			}
-		}
-
-		if (fixpoint)
-		{
-			break;
 		}
 
 		pots.swap(newpots);
@@ -158,8 +154,14 @@ int main(int /*argc*/, char* /*argv*/[])
 
 			min--;
 		}
+
+		if (fixpoint)
+		{
+			break;
+		}
 	}
 
+	std::cout << "Drift: " << drift << std::endl;
 	printPots(pots, left, min, max);
 
 	int64_t sum = 0;

@@ -34,7 +34,7 @@ struct Cart
 
 constexpr bool operator<(const Cart& a, const Cart& b)
 {
-	return (a.yahoo < b.yahoo) || (a.yahoo == b.yahoo && a.xenon << b.xenon);
+	return (a.yahoo < b.yahoo) || (a.yahoo == b.yahoo && a.xenon < b.xenon);
 }
 
 void print(const std::vector<std::vector<char>>& board,

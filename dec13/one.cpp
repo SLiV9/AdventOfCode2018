@@ -140,15 +140,19 @@ int main(int /*argc*/, char* /*argv*/[])
 			Cart& cart = carts[i];
 			int x = cart.xenon + cart.hspd;
 			int y = cart.yahoo + cart.vspd;
-			cart.xenon = x;
-			cart.yahoo = y;
 
 			for (size_t j = 0; j < carts.size(); j++)
 			{
 				if (i != j
-					&& cart.xenon == carts[j].xenon
-					&& cart.yahoo == carts[j].yahoo)
+					&& x == carts[j].xenon
+					&& y == carts[j].yahoo
+					&& cart.hspd == -carts[j].hspd
+					&& cart.vspd == -carts[j].vspd)
 				{
+					std::cout << "About to crash"
+						" after " << tick << " ticks!" << std::endl;
+					print(board, carts);
+
 					cart.hspd = 0;
 					cart.vspd = 0;
 					carts[j].hspd = 0;
@@ -156,9 +160,12 @@ int main(int /*argc*/, char* /*argv*/[])
 					crashed = true;
 					crashx = x;
 					crashy = y;
-					updatetick = tick + 1;
 				}
 			}
+
+			cart.xenon = x;
+			cart.yahoo = y;
+
 			if (crashed)
 			{
 				break;
@@ -223,7 +230,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	if (crashed)
 	{
-		std::cout << "Crashed after " << updatetick << " ticks!" << std::endl;
+		std::cout << "Crashed!" << std::endl;
 	}
 	else
 	{

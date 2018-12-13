@@ -145,9 +145,7 @@ int main(int /*argc*/, char* /*argv*/[])
 			{
 				if (i != j
 					&& x == carts[j].xenon
-					&& y == carts[j].yahoo
-					&& cart.hspd == -carts[j].hspd
-					&& cart.vspd == -carts[j].vspd)
+					&& y == carts[j].yahoo)
 				{
 					std::cout << "About to crash"
 						" after " << tick << " ticks!" << std::endl;

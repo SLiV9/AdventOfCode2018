@@ -222,7 +222,7 @@ int main(int /*argc*/, char* /*argv*/[])
 					break;
 				}
 
-				std::cout << line << std::endl;
+				//std::cout << line << std::endl;
 				scanRegister(line, reg);
 
 				state = State::SAMPLEINSTRUCTION;
@@ -230,7 +230,7 @@ int main(int /*argc*/, char* /*argv*/[])
 			break;
 			case State::SAMPLEINSTRUCTION:
 			{
-				std::cout << line << std::endl;
+				//std::cout << line << std::endl;
 				scanInstruction(line, opcode, argA, argB, argC);
 
 				state = State::SAMPLEAFTER;
@@ -238,45 +238,46 @@ int main(int /*argc*/, char* /*argv*/[])
 			break;
 			case State::SAMPLEAFTER:
 			{
-				std::cout << line << std::endl;
+				//std::cout << line << std::endl;
 				Register out;
 				scanRegister(line, out);
 
 				std::bitset<size_t(Operation::SIZE)> matches;
 
-				std::cout << "Matches ";
-				const char* sep = "";
+				//std::cout << "Matches ";
+				//const char* sep = "";
 				for (uint8_t i = 0; i < uint8_t(Operation::SIZE); i++)
 				{
 					if (out[argC] == operate((Operation) i, argA, argB, reg))
 					{
-						std::cout << sep << (Operation) i;
-						sep = ", ";
+						//std::cout << sep << (Operation) i;
+						//sep = ", ";
 
 						matches[i] = true;
 					}
 				}
-				if (matches.none()) std::cout << "nothing" << std::endl;
-				else std::cout << " (" << matches.count() << ")" << std::endl;
+				//if (matches.none()) std::cout << "nothing" << std::endl;
+				//else std::cout << " (" << matches.count() << ")" << std::endl;
 
 				if (couldbe[opcode].any())
 				{
 					matches = couldbe[opcode] &= matches;
 				}
 				else couldbe[opcode] = matches;
-				std::cout << "Opcode " << int(opcode) << " could be ";
-				sep = "";
-				for (uint8_t i = 0; i < uint8_t(Operation::SIZE); i++)
-				{
-					if (matches[i])
-					{
-						std::cout << sep << (Operation) i;
-						sep = ", ";
-					}
-				}
-				if (matches.none()) std::cout << "nothing" << std::endl;
-				else std::cout << " (" << matches.count() << ")" << std::endl;
-				std::cout << std::endl;
+
+				//std::cout << "Opcode " << int(opcode) << " could be ";
+				//sep = "";
+				//for (uint8_t i = 0; i < uint8_t(Operation::SIZE); i++)
+				//{
+				//	if (matches[i])
+				//	{
+				//		std::cout << sep << (Operation) i;
+				//		sep = ", ";
+				//	}
+				//}
+				//if (matches.none()) std::cout << "nothing" << std::endl;
+				//else std::cout << " (" << matches.count() << ")" << std::endl;
+				//std::cout << std::endl;
 
 				state = State::SAMPLESEPARATOR;
 			}
@@ -304,9 +305,61 @@ int main(int /*argc*/, char* /*argv*/[])
 		if (couldbe[opcode].none()) std::cout << "nothing" << std::endl;
 		else std::cout << " (" << couldbe[opcode].count() << ")" << std::endl;
 	}
+	std::cout << std::endl;
 
-	//while (std::getline(file, line))
-	//{
-	//	if (line.empty()) continue;
-	//}
+	Operation operation[16];
+
+	std::bitset<16> solved;
+	while (solved.count() < 16)
+	{
+		for (opcode = 0; opcode < 16; opcode++)
+		{
+			assert(couldbe[opcode].any());
+			if (solved[opcode]) continue;
+			if (couldbe[opcode].count() > 1) continue;
+
+			solved[opcode] = true;
+
+			for (uint8_t i = 0; i < uint8_t(Operation::SIZE); i++)
+			{
+				if (couldbe[opcode][i])
+				{
+					operation[opcode] = (Operation) i;
+				}
+			}
+
+			for (uint8_t o = 0; o < 16; o++)
+			{
+				if (solved[o]) continue;
+				couldbe[o] &= ~(couldbe[opcode]);
+			}
+
+			std::cout << "Opcode " << int(opcode) << " is "
+				<< operation[opcode] << std::endl;
+		}
+	}
+	std::cout << std::endl;
+
+	reg[0] = 0;
+	reg[1] = 0;
+	reg[2] = 0;
+	reg[3] = 0;
+
+	while (std::getline(file, line))
+	{
+		if (line.empty()) continue;
+
+		scanInstruction(line, opcode, argA, argB, argC);
+
+		std::cout << operation[opcode] << " " << int(argA) << " " << int(argB)
+			<< " " << int(argC) << std::endl;
+
+		reg[argC] = operate(operation[opcode], argA, argB, reg);
+
+		std::cout << "[" << int(reg[0]) << ", " << int(reg[1]) << ", "
+			<< int(reg[2]) << ", " << int(reg[3]) << "]" << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "The answer is " << int(reg[0]) << std::endl;
 }

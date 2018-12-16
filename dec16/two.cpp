@@ -66,21 +66,21 @@ std::ostream& operator<<(std::ostream& os, const Operation& op)
 class Register
 {
 private:
-	uint8_t data[4] = {0, 0, 0, 0};
+	int data[4] = {0, 0, 0, 0};
 
 public:
-    uint8_t operator[](uint8_t i) const
-    {
-    	return data[i & 0x3] & 0xF;
-    }
+	int operator[](uint8_t i) const
+	{
+		return data[i & 0x3];
+	}
 
-    uint8_t& operator[](uint8_t i)
-    {
-    	return data[i & 0x3];
-    }
+	int& operator[](uint8_t i)
+	{
+		return data[i & 0x3];
+	}
 };
 
-uint8_t operate8(const Operation& op, uint8_t argA, uint8_t argB, Register& reg)
+uint8_t operate(const Operation& op, int argA, int argB, Register& reg)
 {
 	switch (op)
 	{
@@ -168,21 +168,11 @@ uint8_t operate8(const Operation& op, uint8_t argA, uint8_t argB, Register& reg)
 	return 0;
 }
 
-uint8_t operate(const Operation& op, uint8_t argA, uint8_t argB, Register& reg)
-{
-	return operate8(op, argA, argB, reg) & 0xF;
-}
-
 void scanRegister(const std::string& line,
 	Register& reg)
 {
-	int in[4];
 	sscanf(line.c_str() + strlen("Before: ["), "%d, %d, %d, %d",
-		&in[0], &in[1], &in[2], &in[3]);
-	for (uint8_t i = 0; i < 4; i++)
-	{
-		reg[i] = in[i] & 0xF;
-	}
+		&reg[0], &reg[1], &reg[2], &reg[3]);
 }
 
 void scanInstruction(const std::string& line,
@@ -191,9 +181,9 @@ void scanInstruction(const std::string& line,
 	int o, a, b, c;
 	sscanf(line.c_str(), "%d %d %d %d", &o, &a, &b, &c);
 	opcode = o & 0xF;
-	argA = a & 0xF;
-	argB = b & 0xF;
-	argC = c & 0xF;
+	argA = a & 0x3;
+	argB = b & 0x3;
+	argC = c & 0x3;
 }
 
 int main(int /*argc*/, char* /*argv*/[])

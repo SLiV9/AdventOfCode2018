@@ -80,7 +80,7 @@ public:
 	}
 };
 
-uint8_t operate(const Operation& op, int argA, int argB, Register& reg)
+int operate(const Operation& op, int argA, int argB, Register& reg)
 {
 	switch (op)
 	{

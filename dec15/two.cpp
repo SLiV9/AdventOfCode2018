@@ -175,8 +175,9 @@ bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
 	std::cout << "Elves deal " << int(elfdamage) << " damage" << std::endl;
 
 	size_t rounds = 0;
-	bool combat = true;
-	while (combat)
+	bool victory = false;
+	bool defeat = false;
+	while (!victory && !defeat)
 	{
 		//std::cout << "After " << rounds << " rounds:" << std::endl;
 		//print(board, units);
@@ -260,9 +261,14 @@ bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
 				}
 
 				if (any) continue;
+				else if (activeunit.type == 'E')
+				{
+					victory = true;
+					break;
+				}
 				else
 				{
-					combat = false;
+					defeat = true;
 					break;
 				}
 			}
@@ -360,6 +366,11 @@ bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
 					{
 						target->hitpoints = 0;
 						board[target->yahoo][target->xenon] = '.';
+
+						if (target->type == 'E')
+						{
+							defeat = true;
+						}
 					}
 					else
 					{
@@ -376,13 +387,12 @@ bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
 			units.end());
 		std::sort(units.begin(), units.end());
 
-		if (combat)
+		if (!victory && !defeat)
 		{
 			rounds++;
 		}
 	}
 
-	bool victory = (!units.empty() && units[0].type == 'E');
 	if (victory)
 	{
 		std::cout << "Elves are victorious!" << std::endl;

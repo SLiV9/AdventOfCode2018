@@ -1,4 +1,4 @@
-//usr/bin/g++ -g -O2 dec15/one.cpp -o dec15/.one && time ./dec15/.one; exit
+//usr/bin/g++ -g -O2 dec15/two.cpp -o dec15/.two && time ./dec15/.two; exit
 
 #include <vector>
 #include <iostream>
@@ -84,6 +84,29 @@ void print(const std::vector<std::vector<char>>& board,
 	}
 }
 
+int fill(/*mutable*/ std::vector<std::vector<char>>& board,
+	const std::vector<Unit>& units)
+{
+	for (const Unit& unit : units)
+	{
+		board[unit.yahoo][unit.xenon] = unit.type;
+	}
+}
+
+int clean(/*mutable*/ std::vector<std::vector<char>>& board,
+	const std::vector<Unit>& units)
+{
+	for (const Unit& unit : units)
+	{
+		board[unit.yahoo][unit.xenon] = '.';
+	}
+}
+
+bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
+	/*mutable*/ std::vector<std::vector<uint8_t>>& hmap,
+	/*mutable*/ std::vector<Unit>& units,
+	uint8_t elfdamage);
+
 int main(int /*argc*/, char* /*argv*/[])
 {
 	std::ifstream file("dec15/input.txt");
@@ -111,12 +134,52 @@ int main(int /*argc*/, char* /*argv*/[])
 		hmap.emplace_back(board.back().size());
 	}
 
+	uint8_t mindamage = 4;
+	uint8_t maxdamage = 200;
+	uint8_t elfdamage = 20;
+	while (mindamage < maxdamage)
+	{
+		std::cout << int(mindamage) << " <= " << int(elfdamage)
+			<< " <= " << int(maxdamage) << std::endl;
+		std::vector<Unit> simulants = units;
+		bool survival = simulate(board, hmap, simulants, elfdamage);
+		clean(board, simulants);
+		fill(board, units);
+
+		if (survival)
+		{
+			maxdamage = elfdamage;
+			if (elfdamage > mindamage)
+			{
+				// Take the middle of the half-open [mindamage, elfdamage).
+				elfdamage = mindamage + (elfdamage - mindamage) / 2;
+			}
+		}
+		else
+		{
+			mindamage = elfdamage + 1;
+			if (elfdamage < maxdamage)
+			{
+				// Take the middle of the half-open (elfdamage, maxdamage].
+				elfdamage = maxdamage - (maxdamage - elfdamage) / 2;
+			}
+		}
+	}
+}
+
+bool simulate(/*mutable*/ std::vector<std::vector<char>>& board,
+	/*mutable*/ std::vector<std::vector<uint8_t>>& hmap,
+	/*mutable*/ std::vector<Unit>& units,
+	uint8_t elfdamage)
+{
+	std::cout << "Elves deal " << int(elfdamage) << " damage" << std::endl;
+
 	size_t rounds = 0;
 	bool combat = true;
 	while (combat)
 	{
-		std::cout << "After " << rounds << " rounds:" << std::endl;
-		print(board, units);
+		//std::cout << "After " << rounds << " rounds:" << std::endl;
+		//print(board, units);
 
 		for (Unit& activeunit : units)
 		{
@@ -290,15 +353,17 @@ int main(int /*argc*/, char* /*argv*/[])
 
 				if (target != nullptr)
 				{
+					uint8_t damage = (activeunit.type == 'E') ? elfdamage : 3;
+
 					// Check lethality first to prevent underflow.
-					if (target->hitpoints <= 3)
+					if (target->hitpoints <= damage)
 					{
 						target->hitpoints = 0;
 						board[target->yahoo][target->xenon] = '.';
 					}
 					else
 					{
-						target->hitpoints -= 3;
+						target->hitpoints -= damage;
 					}
 				}
 			}
@@ -317,36 +382,24 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 	}
 
-	if (!combat)
+	bool victory = (!units.empty() && units[0].type == 'E');
+	if (victory)
 	{
-		std::cout << "Combat has ended" << std::endl;
+		std::cout << "Elves are victorious!" << std::endl;
 	}
 	else
 	{
-		std::cout << "Combat was interrupted" << std::endl;
+		std::cout << "Elves are defeated" << std::endl;
 	}
 	print(board, units);
 
 	std::cout << "Completed " << rounds << " full rounds" << std::endl;
-
 	int sum = 0;
 	for (const Unit& unit : units)
 	{
 		sum += unit.hitpoints;
 	}
-
 	std::cout << "x" << sum << "  ==>  " << (rounds * sum) << std::endl;
-}
 
-// I was thinking about an optimization where I just do a floodfill and take
-// any step that brings me closest to any unit, but this does not always work:
-// #######
-// #...0G#
-// #..#1.#
-// #12E2.#
-// #0....#
-// #G....#
-// #######
-// Here the optimization would lead me to go left, because it is earlier in
-// reading order than going right, but we should go right because it leads
-// to the upper goblin, which is earlier in reading order than the lower goblin.
+	return victory;
+}

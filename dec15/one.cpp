@@ -25,6 +25,12 @@ struct Position
 		xenon(x),
 		yahoo(y)
 	{}
+
+	constexpr bool isAdjacentTo(const Position& other)
+	{
+		return ((int(xenon) - other.xenon) * (int(xenon) - other.xenon)
+			+   (int(yahoo) - other.yahoo) * (int(yahoo) - other.yahoo) == 1);
+	}
 };
 
 struct Unit : public Position
@@ -109,8 +115,8 @@ int main(int /*argc*/, char* /*argv*/[])
 	bool combat = true;
 	while (combat)
 	{
-		//std::cout << "After " << rounds << " rounds:" << std::endl;
-		//print(board, units);
+		std::cout << "After " << rounds << " rounds:" << std::endl;
+		print(board, units);
 
 		for (Unit& activeunit : units)
 		{
@@ -268,23 +274,32 @@ int main(int /*argc*/, char* /*argv*/[])
 
 			if (distance <= 2)
 			{
+				// Find the weakest adjacent enemy unit.
+				Unit* target = nullptr;
+				uint8_t weakest = uint8_t(-1);
 				for (Unit& otherunit : units)
 				{
-					if (otherunit.xenon != targetpos.xenon) continue;
-					if (otherunit.yahoo != targetpos.yahoo) continue;
+					if (!otherunit.isAdjacentTo(activeunit)) continue;
+					if (otherunit.type == activeunit.type) continue;
 					if (otherunit.hitpoints == 0) continue;
+					if (otherunit.hitpoints >= weakest) continue;
 
+					target = &otherunit;
+					weakest = otherunit.hitpoints;
+				}
+
+				if (target != nullptr)
+				{
 					// Check lethality first to prevent underflow.
-					if (otherunit.hitpoints < 3)
+					if (target->hitpoints < 3)
 					{
-						otherunit.hitpoints = 0;
-						board[targetpos.yahoo][targetpos.xenon] = '.';
+						target->hitpoints = 0;
+						board[target->yahoo][target->xenon] = '.';
 					}
 					else
 					{
-						otherunit.hitpoints -= 3;
+						target->hitpoints -= 3;
 					}
-					break;
 				}
 			}
 

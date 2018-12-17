@@ -41,8 +41,8 @@ int main(int /*argc*/, char* /*argv*/[])
 	std::vector<std::array<char, width>> board;
 	board.emplace_back();
 	board[0].fill('.');
-	board[0][500] = '+';
 	int maxdepth = 0;
+	int miny = 999;
 	int minx = 500;
 	int maxx = 500;
 
@@ -60,6 +60,8 @@ int main(int /*argc*/, char* /*argv*/[])
 
 				if (x0 - 1 < minx) minx = x0 - 1;
 				if (x0 + 1 > maxx) maxx = x0 + 1;
+
+				if (y1 < miny) miny = y1;
 
 				if (y2 > maxdepth)
 				{
@@ -87,6 +89,8 @@ int main(int /*argc*/, char* /*argv*/[])
 				if (x2 - 1 < minx) minx = x2 - 1;
 				if (x2 + 1 > maxx) maxx = x2 + 1;
 
+				if (y0 < miny) miny = y0;
+
 				if (y0 > maxdepth)
 				{
 					board.resize(y0 + 1);
@@ -112,8 +116,11 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 	}
 
+	std::cout << "Spring at row " << (miny - 1) << std::endl;
+	board[miny - 1][500] = '+';
+
 	int reached = 0;
-	std::vector<std::pair<int, int>> sources = {{500, 0}};
+	std::vector<std::pair<int, int>> sources = {{500, miny - 1}};
 	while (!sources.empty())
 	{
 		bool anychanges = false;

@@ -120,6 +120,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	board[miny - 1][500] = '+';
 
 	int reached = 0;
+	int filled = 0;
 	std::vector<std::pair<int, int>> sources = {{500, miny - 1}};
 	while (!sources.empty())
 	{
@@ -285,7 +286,9 @@ int main(int /*argc*/, char* /*argv*/[])
 		{
 			for (int x = leftwall + 1; x <= rightwall - 1; x++)
 			{
-				anychanges = (board[y][x] != '~');
+				assert(board[y][x] != '~');
+				anychanges = true;
+				filled += 1;
 				board[y][x] = '~';
 			}
 		}
@@ -312,4 +315,5 @@ int main(int /*argc*/, char* /*argv*/[])
 	print(board, std::max(minx, 400), std::min(maxx, 600));
 
 	std::cout << "The water reaches " << reached << " tiles" << std::endl;
+	std::cout << "The water fills " << filled << " tiles" << std::endl;
 }

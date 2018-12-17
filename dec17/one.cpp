@@ -23,9 +23,20 @@ void print(std::vector<std::array<char, width>>& board, int minx, int maxx)
 	std::cout << std::endl;
 }
 
+void print(std::vector<std::array<char, width>>& board, int minx, int maxx,
+	int miny, int maxy)
+{
+	for (int y = miny; y <= maxy; y++)
+	{
+		std::cout.write(board[y].data() + minx, (maxx - minx + 1));
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 int main(int /*argc*/, char* /*argv*/[])
 {
-	std::ifstream file("dec17/test.txt");
+	std::ifstream file("dec17/input.txt");
 
 	std::vector<std::array<char, width>> board;
 	board.emplace_back();
@@ -105,10 +116,20 @@ int main(int /*argc*/, char* /*argv*/[])
 	std::vector<std::pair<int, int>> sources = {{500, 0}};
 	while (!sources.empty())
 	{
-		print(board, minx, maxx);
+		bool anychanges = false;
 
 		int srcx = sources.back().first;
 		int srcy = sources.back().second;
+
+		if (board[srcy][srcx] != '+')
+		{
+			sources.pop_back();
+			continue;
+		}
+
+		//print(board, std::max(minx, srcx - 100), std::min(maxx, srcx + 100),
+		//	std::max(0, srcy - 50), std::min(maxdepth, srcy + 50));
+
 		int y = srcy + 1;
 		for (; y <= maxdepth; y++)
 		{
@@ -119,10 +140,13 @@ int main(int /*argc*/, char* /*argv*/[])
 				{
 					board[y][srcx] = '|';
 					reached += 1;
+					anychanges = true;
 				}
 				break;
 
 				case '|':
+				case '+':
+				case '*':
 				break;
 
 				case '#':
@@ -137,6 +161,7 @@ int main(int /*argc*/, char* /*argv*/[])
 
 		if (y > maxdepth)
 		{
+			board[srcy][srcx] = '*';
 			sources.pop_back();
 			continue;
 		}
@@ -146,6 +171,8 @@ int main(int /*argc*/, char* /*argv*/[])
 		int rightwall = -1;
 		int leftsrc = -1;
 		int rightsrc = -1;
+		int leftinf = -1;
+		int rightinf = -1;
 
 		for (int x = srcx - 1; x >= minx; x--)
 		{
@@ -155,10 +182,18 @@ int main(int /*argc*/, char* /*argv*/[])
 				{
 					board[y][x] = '|';
 					reached += 1;
+					anychanges = true;
 				}
 				break;
 
 				case '|':
+				case '+':
+				break;
+
+				case '*':
+				{
+					leftinf = x;
+				}
 				break;
 
 				case '#':
@@ -168,12 +203,15 @@ int main(int /*argc*/, char* /*argv*/[])
 				}
 				break;
 			}
+			if (leftinf != -1) break;
 			if (leftwall != -1) break;
 
 			switch (board[y + 1][x])
 			{
 				case '.':
 				case '|':
+				case '+':
+				case '*':
 				{
 					leftsrc = x;
 				}
@@ -194,10 +232,18 @@ int main(int /*argc*/, char* /*argv*/[])
 				{
 					board[y][x] = '|';
 					reached += 1;
+					anychanges = true;
 				}
 				break;
 
 				case '|':
+				case '+':
+				break;
+
+				case '*':
+				{
+					rightinf = x;
+				}
 				break;
 
 				case '#':
@@ -207,12 +253,15 @@ int main(int /*argc*/, char* /*argv*/[])
 				}
 				break;
 			}
+			if (rightinf != -1) break;
 			if (rightwall != -1) break;
 
 			switch (board[y + 1][x])
 			{
 				case '.':
 				case '|':
+				case '+':
+				case '*':
 				{
 					rightsrc = x;
 				}
@@ -229,28 +278,31 @@ int main(int /*argc*/, char* /*argv*/[])
 		{
 			for (int x = leftwall + 1; x <= rightwall - 1; x++)
 			{
+				anychanges = (board[y][x] != '~');
 				board[y][x] = '~';
 			}
 		}
-		else
+
+		if (leftsrc != -1)
 		{
+			board[y][leftsrc] = '+';
+			sources.emplace_back(leftsrc, y);
+		}
+
+		if (rightsrc != -1)
+		{
+			board[y][rightsrc] = '+';
+			sources.emplace_back(rightsrc, y);
+		}
+
+		if (!anychanges)
+		{
+			board[srcy][srcx] = '*';
 			sources.pop_back();
-
-			if (leftsrc != -1)
-			{
-				board[y][leftsrc] = '+';
-				sources.emplace_back(leftsrc, y);
-			}
-
-			if (rightsrc != -1)
-			{
-				board[y][rightsrc] = '+';
-				sources.emplace_back(rightsrc, y);
-			}
 		}
 	}
 
-	print(board, minx, maxx);
+	print(board, std::max(minx, 400), std::min(maxx, 600));
 
 	std::cout << "The water reaches " << reached << " tiles" << std::endl;
 }

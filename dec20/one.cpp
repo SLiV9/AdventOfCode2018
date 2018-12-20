@@ -219,14 +219,63 @@ int main(int /*argc*/, char* /*argv*/[])
 		});
 	board[2 * zeroy + 1][2 * zerox + 1] = 'X';
 
+	std::vector<Probe> queue;
+	std::vector<Probe> nextqueue;
+	queue.push_back({2 * zerox + 1, 2 * zeroy + 1});
+	int distance = 0;
+	while (!queue.empty())
+	{
+		//for (const auto& row : board)
+		//{
+		//	std::cout.write(row.data(), 2 * width + 1) << std::endl;
+		//}
+		//std::cout << std::endl;
+
+		std::sort(queue.begin(), queue.end());
+		queue.erase(std::unique(queue.begin(), queue.end()),
+			queue.end());
+
+		for (const Probe& pos : queue)
+		{
+			int xx = pos.x;
+			int yy = pos.y;
+			board[yy][xx] = '0' + (distance % 10);
+
+			if (board[yy][xx + 1] != '#' && board[yy][xx + 2] == '.')
+			{
+				nextqueue.push_back({xx + 2, yy});
+			}
+			if (board[yy + 1][xx] != '#' && board[yy + 2][xx] == '.')
+			{
+				nextqueue.push_back({xx, yy + 2});
+			}
+			if (board[yy][xx - 1] != '#' && board[yy][xx - 2] == '.')
+			{
+				nextqueue.push_back({xx - 2, yy});
+			}
+			if (board[yy - 1][xx] != '#' && board[yy - 2][xx] == '.')
+			{
+				nextqueue.push_back({xx, yy - 2});
+			}
+		}
+
+		queue.clear();
+		if (!nextqueue.empty())
+		{
+			nextqueue.swap(queue);
+			distance++;
+		}
+	}
+	board[2 * zeroy + 1][2 * zerox + 1] = 'X';
+
 	for (const auto& row : board)
 	{
 		std::cout.write(row.data(), 2 * width + 1) << std::endl;
 	}
 	std::cout << std::endl;
 
-	//std::cout << "The furthest room requires passing "
-	//	<< maxlen << " doors" << std::endl;
+	std::cout << "The furthest room requires passing "
+		<< distance << " doors" << std::endl;
 }
 
 

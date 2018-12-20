@@ -15,13 +15,23 @@ struct Probe
 {
 	int x;
 	int y;
+
+	constexpr bool operator==(const Probe& other)
+	{
+		return (x == other.x && y == other.y);
+	}
+
+	constexpr bool operator<(const Probe& other)
+	{
+		return (y < other.y || (y == other.y && x < other.x));
+	}
 };
 
 int main(int /*argc*/, char* /*argv*/[])
 {
 	std::string line;
 	{
-		std::ifstream file("dec20/test7.txt");
+		std::ifstream file("dec20/test8.txt");
 		std::getline(file, line);
 	}
 
@@ -118,6 +128,11 @@ int main(int /*argc*/, char* /*argv*/[])
 					size_t start = stack.back();
 
 					probes.erase(probes.begin() + start, probes.begin() + end);
+
+					std::sort(probes.begin() + start, probes.end());
+					probes.erase(
+						std::unique(probes.begin() + start, probes.end()),
+						probes.end());
 				}
 				break;
 				case '$':
@@ -125,20 +140,20 @@ int main(int /*argc*/, char* /*argv*/[])
 			}
 
 			std::cout << c << "   ";
-			size_t s = 0;
-			const char* sep = "";
-			for (size_t i = 0; i < probes.size(); i++)
-			{
-				std::cout << sep;
-				while (s < stack.size() && stack[s] == i)
-				{
-					std::cout << s << ": ";
-					s++;
-				}
-				std::cout << probes[i].x << "," << probes[i].y;
-				sep = "; ";
-			}
-			std::cout << std::endl;
+			//size_t s = 0;
+			//const char* sep = "";
+			//for (size_t i = 0; i < probes.size(); i++)
+			//{
+			//	std::cout << sep;
+			//	while (s < stack.size() && stack[s] == i)
+			//	{
+			//		std::cout << s << ": ";
+			//		s++;
+			//	}
+			//	std::cout << probes[i].x << "," << probes[i].y;
+			//	sep = "; ";
+			//}
+			std::cout << "   (" << probes.size() << ")" << std::endl;
 		}
 	}
 

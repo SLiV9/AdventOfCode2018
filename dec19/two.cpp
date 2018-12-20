@@ -75,27 +75,10 @@ std::ostream& operator<<(std::ostream& os, const Operation& op)
 	return os << stringify(op);
 }
 
-class Register
-{
-private:
-	int data[6] = {0, 0, 0, 0, 0, 0};
-
-public:
-	int operator[](uint8_t i) const
-	{
-		return data[i % 6];
-	}
-
-	int& operator[](uint8_t i)
-	{
-		return data[i % 6];
-	}
-};
-
-std::ostream& operator<<(std::ostream& os, const Register& reg)
+std::ostream& operator<<(std::ostream& os, int reg[6])
 {
 	const char* sep = "[";
-	for (uint8_t i = 0; i < 6; i++)
+	for (int i = 0; i < 6; i++)
 	{
 		os << sep << reg[i];
 		sep = ", ";
@@ -103,7 +86,7 @@ std::ostream& operator<<(std::ostream& os, const Register& reg)
 	return os << "]";
 }
 
-int operate(const Operation& op, int argA, int argB, Register& reg)
+int operate(const Operation& op, int argA, int argB, int reg[6])
 {
 	switch (op)
 	{
@@ -194,11 +177,11 @@ int operate(const Operation& op, int argA, int argB, Register& reg)
 struct Instruction
 {
 	Operation op;
-	uint8_t argA;
-	uint8_t argB;
-	uint8_t argC;
+	int argA;
+	int argB;
+	int argC;
 
-	void operate(Register& reg) const
+	void operate(int reg[6]) const
 	{
 		reg[argC] = ::operate(op, argA, argB, reg);
 	}
@@ -215,16 +198,16 @@ Instruction parseInstruction(const char* str)
 	char o[5] = "abcd";
 	int a, b, c;
 	sscanf(str, "%4s %d %d %d", o, &a, &b, &c);
-	return {parseOperation(o), uint8_t(a), uint8_t(b), uint8_t(c)};
+	return {parseOperation(o), a, b, c};
 }
 
 int main(int /*argc*/, char* /*argv*/[])
 {
 	std::ifstream file("dec19/input.txt");
 
-	Register reg;
+	int reg[6] = {0, 0, 0, 0, 0, 0};
 	std::vector<Instruction> program;
-	uint8_t icpos;
+	int icpos;
 
 	std::string line;
 	{
@@ -246,12 +229,14 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	size_t ticks = 0;
 	size_t updatetick = 1;
-	for (size_t ic = 0; ic < program.size(); ic++)
+	size_t programsize = program.size();
+	for (size_t ic = 0; ic < programsize; ic++)
 	{
 		ticks++;
 		if (ticks == updatetick)
 		{
 			std::cout << ticks << std::endl;
+			if (ticks == 134217728) return 0;
 			updatetick *= 2;
 		}
 

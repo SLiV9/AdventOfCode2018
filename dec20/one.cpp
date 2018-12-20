@@ -27,11 +27,138 @@ struct Probe
 	}
 };
 
+template<typename E, typename S, typename W, typename N, typename P>
+void investigate(const std::string& line,
+	E east, S south, W west, N north, P print)
+{
+	std::vector<Probe> probes = { {0, 0} };
+	std::vector<size_t> stack = { 0 };
+	for (char c : line)
+	{
+		switch (c)
+		{
+			case '^':
+			break;
+			case 'E':
+			{
+				for (size_t i = stack.back(); i < probes.size(); i++)
+				{
+					int& x = probes[i].x;
+					int& y = probes[i].y;
+					x++;
+					east(x, y);
+				}
+			}
+			break;
+			case 'S':
+			{
+				for (size_t i = stack.back(); i < probes.size(); i++)
+				{
+					int& x = probes[i].x;
+					int& y = probes[i].y;
+					y++;
+					south(x, y);
+				}
+			}
+			break;
+			case 'W':
+			{
+				for (size_t i = stack.back(); i < probes.size(); i++)
+				{
+					int& x = probes[i].x;
+					int& y = probes[i].y;
+					x--;
+					west(x, y);
+				}
+			}
+			break;
+			case 'N':
+			{
+				for (size_t i = stack.back(); i < probes.size(); i++)
+				{
+					int& x = probes[i].x;
+					int& y = probes[i].y;
+					y--;
+					north(x, y);
+				}
+			}
+			break;
+			case '(':
+			{
+				size_t start = stack.back();
+				size_t end = probes.size();
+				size_t len = end - start;
+
+				size_t cur = probes.size();
+				probes.resize(cur + len);
+				std::copy_n(probes.begin() + start, len,
+					probes.begin() + cur);
+
+				stack.push_back(end);
+				stack.push_back(cur);
+			}
+			break;
+			case '|':
+			{
+				stack.pop_back();
+				size_t end = stack.back();
+				stack.pop_back();
+				size_t start = stack.back();
+				size_t len = end - start;
+
+				size_t cur = probes.size();
+				probes.resize(cur + len);
+				std::copy_n(probes.begin() + start, len,
+					probes.begin() + cur);
+
+				stack.push_back(end);
+				stack.push_back(cur);
+			}
+			break;
+			case ')':
+			{
+				stack.pop_back();
+				size_t end = stack.back();
+				stack.pop_back();
+				size_t start = stack.back();
+
+				probes.erase(probes.begin() + start, probes.begin() + end);
+
+				std::sort(probes.begin() + start, probes.end());
+				probes.erase(
+					std::unique(probes.begin() + start, probes.end()),
+					probes.end());
+			}
+			break;
+			case '$':
+			break;
+		}
+
+		//std::cout << c << "   ";
+		//size_t s = 0;
+		//const char* sep = "";
+		//for (size_t i = 0; i < probes.size(); i++)
+		//{
+		//	std::cout << sep;
+		//	while (s < stack.size() && stack[s] == i)
+		//	{
+		//		std::cout << s << ": ";
+		//		s++;
+		//	}
+		//	std::cout << probes[i].x << "," << probes[i].y;
+		//	sep = "; ";
+		//}
+		//std::cout << "   (" << probes.size() << ")" << std::endl;
+
+		print();
+	}
+}
+
 int main(int /*argc*/, char* /*argv*/[])
 {
 	std::string line;
 	{
-		std::ifstream file("dec20/test8.txt");
+		std::ifstream file("dec20/input.txt");
 		std::getline(file, line);
 	}
 
@@ -39,126 +166,64 @@ int main(int /*argc*/, char* /*argv*/[])
 	int maxx = 0;
 	int miny = 0;
 	int maxy = 0;
-	{
-		std::vector<Probe> probes = { {0, 0} };
-		std::vector<size_t> stack = { 0 };
-		for (char c : line)
-		{
-			switch (c)
-			{
-				case '^':
-				break;
-				case 'E':
-				{
-					for (size_t i = stack.back(); i < probes.size(); i++)
-					{
-						int& x = probes[i].x;
-						x++;
-						if (x > maxx) maxx = x;
-					}
-				}
-				break;
-				case 'S':
-				{
-					for (size_t i = stack.back(); i < probes.size(); i++)
-					{
-						int& y = probes[i].y;
-						y++;
-						if (y > maxy) maxy = y;
-					}
-				}
-				break;
-				case 'W':
-				{
-					for (size_t i = stack.back(); i < probes.size(); i++)
-					{
-						int& x = probes[i].x;
-						x--;
-						if (x < minx) minx = x;
-					}
-				}
-				break;
-				case 'N':
-				{
-					for (size_t i = stack.back(); i < probes.size(); i++)
-					{
-						int& y = probes[i].y;
-						y--;
-						if (y < miny) miny = y;
-					}
-				}
-				break;
-				case '(':
-				{
-					size_t start = stack.back();
-					size_t end = probes.size();
-					size_t len = end - start;
-
-					size_t cur = probes.size();
-					probes.resize(cur + len);
-					std::copy_n(probes.begin() + start, len,
-						probes.begin() + cur);
-
-					stack.push_back(end);
-					stack.push_back(cur);
-				}
-				break;
-				case '|':
-				{
-					stack.pop_back();
-					size_t end = stack.back();
-					stack.pop_back();
-					size_t start = stack.back();
-					size_t len = end - start;
-
-					size_t cur = probes.size();
-					probes.resize(cur + len);
-					std::copy_n(probes.begin() + start, len,
-						probes.begin() + cur);
-
-					stack.push_back(end);
-					stack.push_back(cur);
-				}
-				break;
-				case ')':
-				{
-					stack.pop_back();
-					size_t end = stack.back();
-					stack.pop_back();
-					size_t start = stack.back();
-
-					probes.erase(probes.begin() + start, probes.begin() + end);
-
-					std::sort(probes.begin() + start, probes.end());
-					probes.erase(
-						std::unique(probes.begin() + start, probes.end()),
-						probes.end());
-				}
-				break;
-				case '$':
-				break;
-			}
-
-			std::cout << c << "   ";
-			//size_t s = 0;
-			//const char* sep = "";
-			//for (size_t i = 0; i < probes.size(); i++)
-			//{
-			//	std::cout << sep;
-			//	while (s < stack.size() && stack[s] == i)
-			//	{
-			//		std::cout << s << ": ";
-			//		s++;
-			//	}
-			//	std::cout << probes[i].x << "," << probes[i].y;
-			//	sep = "; ";
-			//}
-			std::cout << "   (" << probes.size() << ")" << std::endl;
-		}
-	}
+	investigate(line,
+		[&maxx](int x, int y) { // east
+			if (x > maxx) maxx = x;
+		},
+		[&maxy](int x, int y) { // south
+			if (y > maxy) maxy = y;
+		},
+		[&minx](int x, int y) { // west
+			if (x < minx) minx = x;
+		},
+		[&miny](int x, int y) { // north
+			if (y < miny) miny = y;
+		},
+		[]() {});
 
 	std::cout << "x from " << minx << " to " << maxx << std::endl;
 	std::cout << "y from " << miny << " to " << maxy << std::endl;
+	std::cout << std::endl;
+
+	int zerox = -minx;
+	int zeroy = -miny;
+	int width = (maxx - minx + 1);
+	int height = (maxy - miny + 1);
+	std::vector<std::vector<char>> board(2 * height + 1,
+		std::vector<char>(2 * width + 1, '#'));
+
+	board[2 * zeroy + 1][2 * zerox + 1] = 'X';
+	investigate(line,
+		[&board, zerox, zeroy](int x, int y) { // east
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 0] = '|';
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 1] = '.';
+		},
+		[&board, zerox, zeroy](int x, int y) { // south
+			board[2 * (zeroy + y) + 0][2 * (zerox + x) + 1] = '-';
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 1] = '.';
+		},
+		[&board, zerox, zeroy](int x, int y) { // west
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 2] = '|';
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 1] = '.';
+		},
+		[&board, zerox, zeroy](int x, int y) { // north
+			board[2 * (zeroy + y) + 2][2 * (zerox + x) + 1] = '-';
+			board[2 * (zeroy + y) + 1][2 * (zerox + x) + 1] = '.';
+		},
+		[&board, width]() {
+			//for (const auto& row : board)
+			//{
+			//	std::cout.write(row.data(), 2 * width + 1) << std::endl;
+			//}
+			//std::cout << std::endl;
+		});
+	board[2 * zeroy + 1][2 * zerox + 1] = 'X';
+
+	for (const auto& row : board)
+	{
+		std::cout.write(row.data(), 2 * width + 1) << std::endl;
+	}
+	std::cout << std::endl;
 
 	//std::cout << "The furthest room requires passing "
 	//	<< maxlen << " doors" << std::endl;

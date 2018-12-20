@@ -223,6 +223,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	std::vector<Probe> nextqueue;
 	queue.push_back({2 * zerox + 1, 2 * zeroy + 1});
 	int distance = 0;
+	int faraways = 0;
 	while (!queue.empty())
 	{
 		//for (const auto& row : board)
@@ -257,6 +258,11 @@ int main(int /*argc*/, char* /*argv*/[])
 			{
 				nextqueue.push_back({xx, yy - 2});
 			}
+
+			if (distance >= 1000)
+			{
+				faraways++;
+			}
 		}
 
 		queue.clear();
@@ -276,6 +282,9 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	std::cout << "The furthest room requires passing "
 		<< distance << " doors" << std::endl;
+
+	std::cout << "There are " << faraways << " rooms that require passing"
+		" at least 1000 doors" << std::endl;
 }
 
 

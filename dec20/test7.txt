@@ -1,0 +1,1 @@
+^E(E|N(SS(WN|)S|WSE(SW|NE|))E)$

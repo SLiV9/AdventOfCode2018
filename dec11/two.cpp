@@ -24,73 +24,45 @@ int main(int /*argc*/, char* /*argv*/[])
 	int bestj;
 	int bestw;
 
-	constexpr int CHUNKW = 10;
-	std::array<std::array<int, 300 / CHUNKW>, 300 / CHUNKW> chunk;
+	std::array<std::array<int, 300>, 300> valuesIJ;
+
+	for (int i = 0; i < 300; i++)
+	{
+		for (int j = 0; j < 300; j++)
+		{
+			valuesIJ[i][j] = value(i + 1, j + 1);
+		}
+	}
+
+	std::array<std::array<int, 300>, 300> rowsJI;
 
 	// We know w is at least 2 because the top 3x3 score was 31, and the maximum
 	// value of a cell is 4, so you need at least 8 cells, hence at least 3x3.
 	for (int w = 2; w < 300; w++)
 	{
-		uint64_t ticks = 0;
+		for (int i = 0; i + w < 300; i++)
+		{
+			for (int j = 0; j + w < 300; j++)
+			{
+				int sum = 0;
+				int ii = i;
+				for (int jj = j; jj <= j + w; jj++)
+				{
+					sum += valuesIJ[ii][jj];
+				}
+				rowsJI[j][i] = sum;
+			}
+		}
+
 		for (int i = 0; i + w < 300; i++)
 		{
 			for (int j = 0; j + w < 300; j++)
 			{
 				int score = 0;
 
-				int i0 = i + CHUNKW - 1 - ((i + CHUNKW - 1) % CHUNKW);
-				int i1 = i + w - ((i + w) % CHUNKW);
-				int j0 = j - ((j + CHUNKW - 1) % CHUNKW) - 1;
-				int j1 = j + w - ((j + w) % CHUNKW);
-
-				for (int ii = i; ii <= i + w && ii < i0; ii++)
+				for (int ii = i; ii <= i + w; ii++)
 				{
-					for (int jj = j; jj <= j + w; jj++)
-					{
-						score += value(ii + 1, jj + 1);
-						ticks++;
-					}
-				}
-
-				for (int ii = i0; ii < i1; ii++)
-				{
-					for (int jj = j; jj >= j && jj <= j + w && jj < j0; jj++)
-					{
-						score += value(ii + 1, jj + 1);
-						ticks++;
-					}
-				}
-
-				for (int ci = i0 / CHUNKW; ci < i1 / CHUNKW; ci++)
-				{
-					for (int cj = j0 / CHUNKW; cj < j1 / CHUNKW; cj++)
-					{
-						score += chunk[ci][cj];
-						ticks++;
-					}
-				}
-
-				for (int ii = i1; ii <= i + w; ii++)
-				{
-					for (int jj = j; jj <= j + w; jj++)
-					{
-						score += value(ii + 1, jj + 1);
-						ticks++;
-					}
-				}
-
-				for (int ii = i0; ii < i1; ii++)
-				{
-					for (int jj = j1; jj >= j && jj <= j + w; jj++)
-					{
-						score += value(ii + 1, jj + 1);
-						ticks++;
-					}
-				}
-
-				if (w + 1 == CHUNKW && i % CHUNKW == 0 && j % CHUNKW == 0)
-				{
-					chunk[i / CHUNKW][j / CHUNKW] = score;
+					score += rowsJI[j][ii];
 				}
 
 				if (score > bestscore)
@@ -102,27 +74,23 @@ int main(int /*argc*/, char* /*argv*/[])
 				}
 			}
 		}
-
-		std::cout << w << " x" << ticks << " // "
-		//	<< besti << "," << bestj << "," << bestw << ": " << bestscore
-			<< std::endl;
 	}
 
-	//for (int j = bestj - 1; j < bestj + bestw + 1; j++)
-	//{
-	//	for (int i = besti - 1; i < besti + bestw + 1; i++)
-	//	{
-	//		if (bestj < 1 || bestj > 300 || besti < 1 || besti > 300)
-	//		{
-	//			std::cout << " " << " #";
-	//		}
-	//		else std::cout << " " << std::setw(2) << value(i, j);
-	//	}
-	//	std::cout << std::endl;
-	//}
+	for (int j = bestj - 1; j < bestj + bestw + 1; j++)
+	{
+		for (int i = besti - 1; i < besti + bestw + 1; i++)
+		{
+			if (bestj < 1 || bestj > 300 || besti < 1 || besti > 300)
+			{
+				std::cout << " " << " #";
+			}
+			else std::cout << " " << std::setw(2) << value(i, j);
+		}
+		std::cout << std::endl;
+	}
 
 	std::cout
-	//	<< besti << "," << bestj << "," << bestw << ": " << bestscore
+		<< besti << "," << bestj << "," << bestw << ": " << bestscore
 		<< std::endl;
 }
 

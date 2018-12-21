@@ -227,29 +227,67 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	reg[0] = 1;
 
-	size_t ticks = 0;
-	size_t updatetick = 1;
 	size_t programsize = program.size();
 	for (size_t ic = 0; ic < programsize; ic++)
 	{
-		ticks++;
-		if (ticks == updatetick)
+		if (ic == 3)
 		{
-			std::cout << ticks << std::endl;
-			if (ticks == 134217728) return 0;
-			updatetick *= 2;
+			std::cout << "Skip." << std::endl;
+			reg[0] = reg[2] * (reg[2] + 1) / 2;
+			break;
 		}
 
 		reg[icpos] = ic;
 
-		//std::cout << "ip=" << ic << " " << reg << " " << program[ic];
+		std::cout << "ip=" << ic << " " << reg << " " << program[ic];
 
 		program[ic].operate(reg);
 
-		//std::cout << " " << reg << std::endl;
+		std::cout << " " << reg << std::endl;
 
 		ic = reg[icpos];
 	}
 
 	std::cout << "The answer is " << reg[0] << std::endl;
 }
+
+// After initializing, #1 = 1 and #2 = N. Then #0 = sum_{i=1}^{n} i, hence #0 = 1/2 * N * (N + 1).
+
+// #ip 4
+// addi 4 16 4   //  0: jump to 16+1
+// seti 1 8 1    //  1: finishing up initializing
+// seti 1 3 5    // (loop goes from 3 to 11 inclusive)
+// mulr 1 5 3    //  3: #3 = #1 * #5                     // do { do {               // do {                 // for (; #1 <= #2; #1++) {
+// eqrr 3 2 3    //   : #3 = (#3 == #2)                  // if (#1 * #5 == #2)      //   #5 = #2 / #1;      //   nop;
+// addr 3 4 4    //   : ic += #3                         // {
+// addi 4 1 4    //   : ic += 1                          //   #0 += #1;
+// addr 1 0 0    //   : #0 = #0 + #1                     // } else {
+// addi 5 1 5    //   : #5 += 1                          //   #5++;
+// gtrr 5 2 3    //   : #3 = (#5 > #2)                   // }
+// addr 4 3 4    //   : ic += #3                         //
+// seti 2 2 4    // 11: loop back to 2+1                 // } while (#5 <= #2)      //   #0 += #1;          //   #0 += #1
+// addi 1 1 1    //   : #1 += 1                          //   #1++;                 //   #1++;              //
+// gtrr 1 2 3    //   : #3 = (#1 > #2)                   // } while (#1 <= #2)      // } while (#1 <= #2)   // }
+// addr 3 4 4    //   : ic += #3
+// seti 1 4 4    //   : jump to 1+1
+// mulr 4 4 4    // 16: ic = ic * ic                     // exit
+// addi 2 2 2    // 17: start initializing
+// mulr 2 2 2
+// mulr 4 2 2
+// muli 2 11 2
+// addi 3 6 3
+// mulr 3 4 3
+// addi 3 8 3
+// addr 2 3 2
+// addr 4 0 4
+// seti 0 1 4
+// setr 4 4 3
+// mulr 3 4 3
+// addr 4 3 3
+// mulr 4 3 3
+// muli 3 14 3
+// mulr 3 4 3
+// addr 2 3 2
+// seti 0 4 0
+// seti 0 7 4    // 35: jump to 0+1
+

@@ -75,94 +75,6 @@ std::ostream& operator<<(std::ostream& os, const Operation& op)
 	return os << stringify(op);
 }
 
-int operate(const Operation& op, int argA, int argB, int* reg)
-{
-	switch (op)
-	{
-		case Operation::ADDR:
-		{
-			return reg[argA] + reg[argB];
-		}
-		break;
-		case Operation::ADDI:
-		{
-			return reg[argA] + argB;
-		}
-		break;
-		case Operation::MULR:
-		{
-			return reg[argA] * reg[argB];
-		}
-		break;
-		case Operation::MULI:
-		{
-			return reg[argA] * argB;
-		}
-		break;
-		case Operation::BANR:
-		{
-			return reg[argA] & reg[argB];
-		}
-		break;
-		case Operation::BANI:
-		{
-			return reg[argA] & argB;
-		}
-		break;
-		case Operation::BORR:
-		{
-			return reg[argA] | reg[argB];
-		}
-		break;
-		case Operation::BORI:
-		{
-			return reg[argA] | argB;
-		}
-		break;
-		case Operation::SETR:
-		{
-			return reg[argA];
-		}
-		break;
-		case Operation::SETI:
-		{
-			return argA;
-		}
-		break;
-		case Operation::GTIR:
-		{
-			return (argA > reg[argB]);
-		}
-		break;
-		case Operation::GTRI:
-		{
-			return (reg[argA] > argB);
-		}
-		break;
-		case Operation::GTRR:
-		{
-			return (reg[argA] > reg[argB]);
-		}
-		break;
-		case Operation::EQIR:
-		{
-			return (argA == reg[argB]);
-		}
-		break;
-		case Operation::EQRI:
-		{
-			return (reg[argA] == argB);
-		}
-		break;
-		case Operation::EQRR:
-		{
-			return (reg[argA] == reg[argB]);
-		}
-		break;
-	}
-	return 0;
-}
-
 int maxIndexUsed(const Operation& op, int argA, int argB)
 {
 	switch (op)
@@ -214,12 +126,153 @@ struct Instruction
 	{
 		return std::max(argC, ::maxIndexUsed(op, argA, argB));
 	}
+
+	std::ostream& print(std::ostream& os) const
+	{
+		return os << stringify(op) << " " << int(argA)
+			<< " " << int(argB) << " " << int(argC);
+	}
+
+	std::ostream& compile(std::ostream& os) const
+	{
+		switch (op)
+		{
+			case Operation::ADDR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] + reg[" << argB << "];"
+					<< std::endl;
+			}
+			break;
+			case Operation::ADDI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] + " << argB << ";"
+					<< std::endl;
+			}
+			break;
+			case Operation::MULR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] * reg[" << argB << "];"
+					<< std::endl;
+			}
+			break;
+			case Operation::MULI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] * " << argB << ";"
+					<< std::endl;
+			}
+			break;
+			case Operation::BANR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] & reg[" << argB << "];"
+					<< std::endl;
+			}
+			break;
+			case Operation::BANI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] & " << argB << ";"
+					<< std::endl;
+			}
+			break;
+			case Operation::BORR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] | reg[" << argB << "];"
+					<< std::endl;
+			}
+			break;
+			case Operation::BORI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "] | " << argB << ";"
+					<< std::endl;
+			}
+			break;
+			case Operation::SETR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "reg[" << argA << "];"
+					<< std::endl;
+			}
+			break;
+			case Operation::SETI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "" << argA << ";"
+					<< std::endl;
+			}
+			break;
+			case Operation::GTIR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(" << argA << " > reg[" << argB << "]);"
+					<< std::endl;
+			}
+			break;
+			case Operation::GTRI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(reg[" << argA << "] > " << argB << ");"
+					<< std::endl;
+			}
+			break;
+			case Operation::GTRR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(reg[" << argA << "] > reg[" << argB << "]);"
+					<< std::endl;
+			}
+			break;
+			case Operation::EQIR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(" << argA << " == reg[" << argB << "]);"
+					<< std::endl;
+			}
+			break;
+			case Operation::EQRI:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(reg[" << argA << "] == " << argB << ");"
+					<< std::endl;
+			}
+			break;
+			case Operation::EQRR:
+			{
+				return os
+					<< "reg[" << argC << "] = "
+					<< "(reg[" << argA << "] == reg[" << argB << "]);"
+					<< std::endl;
+			}
+			break;
+		}
+		return os << "// unknown operation " << op << std::endl;
+	}
 };
 
 std::ostream& operator<<(std::ostream& os, const Instruction& instr)
 {
-	return os << stringify(instr.op) << " " << int(instr.argA)
-		<< " " << int(instr.argB) << " " << int(instr.argC);
+	return instr.print(os);
 }
 
 Instruction parseInstruction(const char* str)
@@ -239,14 +292,14 @@ int main(int argc, char* argv[])
 	}
 	std::string srcfilename(argv[1]);
 	std::string cppfilename;
-	std::string binfilename;
+	std::string codename;
 	{
 		size_t slashpos = srcfilename.find_last_of('/');
 		std::string dirname = srcfilename.substr(0, slashpos);
 		std::string basename = srcfilename.substr(slashpos + 1);
 		size_t dotpos = basename.find_last_of('.');
-		cppfilename = dirname + "/" + basename.substr(0, dotpos) + ".cpp";
-		binfilename = dirname + "/." + basename.substr(0, dotpos);
+		codename = basename.substr(0, dotpos);
+		cppfilename = dirname + "/" + codename + ".h";
 	}
 
 	std::vector<Instruction> program;
@@ -269,6 +322,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	int psize = program.size();
 	int regsize = icpos + 1;
 	for (const Instruction& instr : program)
 	{
@@ -279,34 +333,42 @@ int main(int argc, char* argv[])
 	{
 		std::ofstream file(cppfilename);
 
-		file << "//usr/bin/g++ -g -O2 "
-			<< cppfilename
-			<< " -o "
-			<< binfilename
-			<< " && time "
-			<< binfilename
-			<< "; exit" << std::endl;
-		file << std::endl;
+		file << "#pragma once" << std::endl;
 		file << "#include <array>" << std::endl;
 		file << std::endl;
-		file << "#define REGSIZE " << regsize << std::endl;
+		file << "#define regsize_" << codename << " " << regsize << std::endl;
 		file << std::endl;
-		file << "void run(std::array<int, REGSIZE>& reg)" << std::endl;
+		file << "int run_" << codename << "("
+			"std::array<int, regsize_" << codename << ">& reg)" << std::endl;
 		file << "{" << std::endl;
+		file << "\tint ticks = 0;" << std::endl;
+		file << "\twhile (reg[" << icpos << "] < " << psize << ")" << std::endl;
+		file << "\t{" << std::endl;
+		file << "\t\tswitch (reg[" << icpos << "])" << std::endl;
+		file << "\t\t{" << std::endl;
 
-		// TODO
+		for (size_t ic = 0; ic < program.size(); ic++)
+		{
+			file << "\t\tcase " << ic << ":" << std::endl;
+			file << "\t\t\tticks++;" << std::endl;
+			file << "\t\t\t";
+			program[ic].compile(file);
+			if (program[ic].argC == icpos)
+			{
+				file << "\t\t\tbreak;" << std::endl;
+			}
+			else
+			{
+				file << "\t\t\treg[" << icpos << "]++;" << std::endl;
+			}
+		}
 
+		file << "\t\tdefault:" << std::endl;
+		file << "\t\t\treturn ticks;" << std::endl;
+		file << "\t\t}" << std::endl;
+		file << "\t\treg[" << icpos << "]++;" << std::endl;
+		file << "\t}" << std::endl;
+		file << "\treturn ticks;" << std::endl;
 		file << "}" << std::endl;
-		file << std::endl;
-		file << "#ifndef MAIN" << std::endl;
-		file << "#define MAIN" << std::endl;
-		file << "int main(int /*argc*/, char* /*argv*/[])" << std::endl;
-		file << "{" << std::endl;
-		file << "  std::array<int REGSIZE> reg;" << std::endl;
-		file << "  reg.fill(0);" << std::endl;
-		file << "  run(reg);" << std::endl;
-		file << "  std::cout << reg[0] << std::endl;" << std::endl;
-		file << "}" << std::endl;
-		file << "#endif" << std::endl;
 	}
 }

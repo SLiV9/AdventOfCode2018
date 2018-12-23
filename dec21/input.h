@@ -134,8 +134,6 @@ int run_input(std::array<int, regsize_input>& reg)
 			ticks++;
 			reg[4] = 5;
 			break;
-		default:
-			return ticks;
 		}
 		reg[4]++;
 	}

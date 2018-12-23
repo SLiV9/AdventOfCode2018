@@ -363,8 +363,6 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		file << "\t\tdefault:" << std::endl;
-		file << "\t\t\treturn ticks;" << std::endl;
 		file << "\t\t}" << std::endl;
 		file << "\t\treg[" << icpos << "]++;" << std::endl;
 		file << "\t}" << std::endl;

@@ -28,9 +28,11 @@ int main(int /*argc*/, char* /*argv*/[])
 	static int N = 20183;
 
 	std::vector<std::vector<int>> geo(targety + 1);
+	std::vector<std::vector<int>> erosion(targety + 1);
 	for (int y = 0; y <= targety; y++)
 	{
 		geo[y].resize(targetx + 1);
+		erosion[y].resize(targetx + 1);
 		for (int x = 0; x <= targetx; x++)
 		{
 			if (y == 0)
@@ -52,21 +54,27 @@ int main(int /*argc*/, char* /*argv*/[])
 				}
 				else
 				{
-					geo[y][x] = (geo[y-1][x] * geo[y][x-1]) % N;
+					geo[y][x] = (erosion[y-1][x] * erosion[y][x-1]) % N;
 				}
 			}
+			erosion[y][x] = (geo[y][x] + depth) % N;
 		}
 	}
 	geo[targety][targetx] = depth;
+	erosion[targety][targetx] = (geo[targety][targetx] + depth) % N;
 
-	std::vector<std::vector<int>> erosion(targety + 1);
 	for (int y = 0; y <= targety; y++)
 	{
-		erosion[y].resize(targetx + 1);
 		for (int x = 0; x <= targetx; x++)
 		{
-			erosion[y][x] = (geo[y][x] + depth) % N;
+			switch (erosion[y][x] % 3)
+			{
+				case 0: std::cout << "."; break;
+				case 1: std::cout << "="; break;
+				case 2: std::cout << "|"; break;
+			}
 		}
+		std::cout << std::endl;
 	}
 
 	int sum = 0;
@@ -80,3 +88,6 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	std::cout << "Sum: " << sum << std::endl;
 }
+
+// 6170 is too low
+// 6209 is too high

@@ -27,47 +27,43 @@ int main(int /*argc*/, char* /*argv*/[])
 
 	static int N = 20183;
 
-	std::vector<std::vector<int>> geo(targety + 1);
-	std::vector<std::vector<int>> erosion(targety + 1);
+	std::vector<std::vector<int>> ero(targety + 1);
 	for (int y = 0; y <= targety; y++)
 	{
-		geo[y].resize(targetx + 1);
-		erosion[y].resize(targetx + 1);
+		ero[y].resize(targetx + 1);
 		for (int x = 0; x <= targetx; x++)
 		{
 			if (y == 0)
 			{
 				if (x == 0)
 				{
-					geo[y][x] = 0;
+					ero[y][x] = (depth) % N;
 				}
 				else
 				{
-					geo[y][x] = (x * 16807) % N;
+					ero[y][x] = (depth + x * 16807) % N;
 				}
 			}
 			else
 			{
 				if (x == 0)
 				{
-					geo[y][x] = (y * 48271) % N;
+					ero[y][x] = (depth + y * 48271) % N;
 				}
 				else
 				{
-					geo[y][x] = (erosion[y-1][x] * erosion[y][x-1]) % N;
+					ero[y][x] = (depth + ero[y-1][x] * ero[y][x-1]) % N;
 				}
 			}
-			erosion[y][x] = (geo[y][x] + depth) % N;
 		}
 	}
-	geo[targety][targetx] = depth;
-	erosion[targety][targetx] = (geo[targety][targetx] + depth) % N;
+	ero[targety][targetx] = (depth) % N;
 
 	for (int y = 0; y <= targety; y++)
 	{
 		for (int x = 0; x <= targetx; x++)
 		{
-			switch (erosion[y][x] % 3)
+			switch (ero[y][x] % 3)
 			{
 				case 0: std::cout << "."; break;
 				case 1: std::cout << "="; break;
@@ -82,7 +78,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	{
 		for (int x = 0; x <= targetx; x++)
 		{
-			sum += (erosion[y][x] % 3);
+			sum += (ero[y][x] % 3);
 		}
 	}
 

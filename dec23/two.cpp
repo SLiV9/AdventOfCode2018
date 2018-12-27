@@ -39,7 +39,7 @@ struct Point
 			+ std::abs(z - other.z));
 	}
 
-	int inrange(const std::vector<Bot>& bots)
+	int inrange(const std::vector<Bot>& bots) const
 	{
 		int ir = 0;
 		for (const Bot& bot : bots)
@@ -88,7 +88,7 @@ struct Box
 		return (max.x - min.x + 1) * (max.y - min.y + 1) * (max.z - min.z + 1);
 	}
 
-	int inrange(const std::vector<Bot>& bots)
+	int inrange(const std::vector<Bot>& bots) const
 	{
 		int ir = 0;
 		for (const Bot& bot : bots)
@@ -98,7 +98,7 @@ struct Box
 		return ir;
 	}
 
-	Point shadow(Point it)
+	Point shadow(Point it) const
 	{
 		return Point(limit(it.x, min.x, max.x), limit(it.y, min.y, max.y),
 			limit(it.z, min.z, max.z));
@@ -112,7 +112,7 @@ std::ostream& operator<<(std::ostream& os, const Box& box)
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-	std::ifstream file("dec23/test2.txt");
+	std::ifstream file("dec23/input.txt");
 
 	std::vector<Bot> bots;
 
@@ -168,6 +168,22 @@ int main(int /*argc*/, char* /*argv*/[])
 	int bestdis = -1;
 	Point bestpoint;
 
+	for (const Bot& bot : bots)
+	{
+		int score = bot.inrange(bots);
+		int dis = bot.distanceTo(Point(0, 0, 0));
+		if (score > bestscore
+			|| (score == bestscore
+				&& (bestdis < 0 || dis < bestdis)))
+		{
+			bestscore = score;
+			bestdis = dis;
+			bestpoint = bot;
+			//std::cout << "Best so far: " << bestpoint << " with "
+			//	<< bestscore << " at " << bestdis << std::endl;
+		}
+	}
+
 	std::vector<Box> queue;
 	std::vector<Box> nextqueue;
 	queue.push_back(bbox);
@@ -178,6 +194,27 @@ int main(int /*argc*/, char* /*argv*/[])
 			int w = box.max.x - box.min.x + 1;
 			int h = box.max.y - box.min.y + 1;
 			int d = box.max.z - box.min.z + 1;
+
+			if (box.volume() > 1)
+			{
+				Point center;
+				center.x = box.min.x + w / 2;
+				center.y = box.min.y + h / 2;
+				center.z = box.min.z + d / 2;
+				int score = center.inrange(bots);
+				int dis = center.distanceTo(Point(0, 0, 0));
+				if (score > bestscore
+					|| (score == bestscore
+						&& (bestdis < 0 || dis < bestdis)))
+				{
+					bestscore = score;
+					bestdis = dis;
+					bestpoint = center;
+					//std::cout << "Best so far: " << bestpoint
+					//	<< " with " << bestscore
+					//	<< " at " << bestdis << std::endl;
+				}
+			}
 
 			Box sub;
 			for (int k = 0; k < divisor; k++)
@@ -209,17 +246,20 @@ int main(int /*argc*/, char* /*argv*/[])
 								bestscore = score;
 								bestdis = dis;
 								bestpoint = sub.min;
+								//std::cout << "Best so far: " << bestpoint
+								//	<< " with " << bestscore
+								//	<< " at " << bestdis << std::endl;
 							}
 						}
 						else
 						{
 							int score = sub.inrange(bots);
-							// Hmmm. What do I compare it to?
-							// Can't compare it to box's score because sub is
-							// a lot smaller. Can't compare it to other subs
-							// because I don't believe that is sound.
-							if (true)
+							int dis = sub.min.distanceTo(Point(0, 0, 0));
+							if (score > bestscore
+								|| (score == bestscore
+									&& (bestdis < 0 || dis < bestdis)))
 							{
+								//std::cout << sub << "\t" << score << std::endl;
 								nextqueue.push_back(sub);
 							}
 						}
@@ -239,3 +279,12 @@ int main(int /*argc*/, char* /*argv*/[])
 	std::cout << "Best point: " << bestpoint
 		<< " (distance to origin: " << bestdis << ")" << std::endl;
 }
+
+
+//     #
+//    ###      #
+//   #####    ###    #
+//  ###3###  ##2##  #1#  0
+//   #####    ###    #
+//    ###      #
+//     #

@@ -154,6 +154,16 @@ int main(int /*argc*/, char* /*argv*/[])
 						"weak to %[^;)]",
 						buffer);
 					parseTypes(damagetypenames, buffer, group.weaknesses);
+
+					parenpos = line.find_first_of(";)", parenpos);
+
+					if (parenpos != std::string::npos && line[parenpos] == ';')
+					{
+						sscanf(line.c_str() + parenpos + 2,
+							"immune to %[^;)]",
+							buffer);
+						parseTypes(damagetypenames, buffer, group.immunities);
+					}
 				}
 
 				parenpos = line.find(")", parenpos);
@@ -174,20 +184,21 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 	}
 
-	//for (const Group& group : groups)
-	//{
-	//	if (group.evil) std::cout << "Evil group";
-	//	else std::cout << "Good group";
-	//	std::cout << " containing " << group.units << " units"
-	//		<< " dealing " << group.damage
-	//		<< " type " << int(group.damagetype) << " "
-	//		<< damagetypenames[group.damagetype] << " damage"
-	//		<< " that are immune to " << group.immunities
-	//		<< " and weak to " << group.weaknesses
-	//		<< std::endl;
-	//}
-	//std::cout << std::endl;
-	//std::cout << std::endl;
+	for (const Group& group : groups)
+	{
+		if (group.evil) std::cout << "Evil group";
+		else std::cout << "Good group";
+		std::cout << " containing " << group.units << " units"
+			<< " with initiative " << group.initiative
+			<< " dealing " << group.damage
+			<< " type " << int(group.damagetype) << " "
+			<< damagetypenames[group.damagetype] << " damage"
+			<< " that are immune to " << group.immunities
+			<< " and weak to " << group.weaknesses
+			<< std::endl;
+	}
+	std::cout << std::endl;
+	std::cout << std::endl;
 
 	while (true)
 	{
@@ -204,8 +215,9 @@ int main(int /*argc*/, char* /*argv*/[])
 		for (size_t a = 0; a < groups.size(); a++)
 		{
 			const Group& attacker = groups[a];
+			// Should deal at least 1 damage.
+			int bestdmg = 0;
 			int besttarget = -1;
-			int bestdmg = -1;
 			for (size_t i = 0; i < groups.size(); i++)
 			{
 				const Group& other = groups[i];
@@ -240,7 +252,8 @@ int main(int /*argc*/, char* /*argv*/[])
 			attacks.emplace_back(attacker.initiative, a, besttarget);
 		}
 
-		// Sort attacks in descending initiative order.
+		// Sort attacks in descending initiative order. Note that we're NOT
+		// sorting the groups because the attacks contain relative indices.
 		std::sort(attacks.begin(), attacks.end(),
 			[](const Attack& a, const Attack& b) {
 				return (a.initiative > b.initiative);
@@ -285,6 +298,8 @@ int main(int /*argc*/, char* /*argv*/[])
 		}
 		if (!immunesystemalive || !infectionalive) break;
 	}
+
+	print(groups);
 
 	int totalunits = 0;
 	for (const Group& group : groups)

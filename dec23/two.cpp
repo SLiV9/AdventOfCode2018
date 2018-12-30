@@ -7,6 +7,7 @@
 #include <bitset>
 #include <algorithm>
 #include <cassert>
+#include <queue>
 
 
 constexpr int limit(int x, int min, int max)
@@ -79,13 +80,16 @@ struct Box
 {
 	Point min;
 	Point max;
+	int score;
 
-	Box()
+	Box() :
+		score(0)
 	{}
 
-	int volume() const
+	int64_t volume() const
 	{
-		return (max.x - min.x + 1) * (max.y - min.y + 1) * (max.z - min.z + 1);
+		return (int64_t(max.x) - min.x + 1) * (int64_t(max.y) - min.y + 1)
+			* (int64_t(max.z) - min.z + 1);
 	}
 
 	int inrange(const std::vector<Bot>& bots) const
@@ -105,9 +109,14 @@ struct Box
 	}
 };
 
+bool operator<(const Box& a, const Box& b)
+{
+	return a.score < b.score;
+}
+
 std::ostream& operator<<(std::ostream& os, const Box& box)
 {
-	os << "[" << box.min << "; " << box.max << "]";
+	os << "[" << box.min << "; " << box.max << "] (" << box.volume() << ")";
 }
 
 int main(int /*argc*/, char* /*argv*/[])
@@ -179,99 +188,105 @@ int main(int /*argc*/, char* /*argv*/[])
 			bestscore = score;
 			bestdis = dis;
 			bestpoint = bot;
-			//std::cout << "Best so far: " << bestpoint << " with "
-			//	<< bestscore << " at " << bestdis << std::endl;
+			std::cout << "Best so far: " << bestpoint << " with "
+				<< bestscore << " at " << bestdis << std::endl;
 		}
 	}
 
-	std::vector<Box> queue;
-	std::vector<Box> nextqueue;
-	queue.push_back(bbox);
+	std::priority_queue<Box> queue;
+	bbox.score = bestscore;
+	queue.push(bbox);
+
 	while (!queue.empty())
 	{
-		for (const Box& box : queue)
+		std::cout << queue.size() << std::endl;
+
+		Box box = queue.top();
+		queue.pop();
+
+		if (box.score < bestscore)
 		{
-			int w = box.max.x - box.min.x + 1;
-			int h = box.max.y - box.min.y + 1;
-			int d = box.max.z - box.min.z + 1;
+			std::cout << "Discarding " << box << "\t" << box.score << std::endl;
+			continue;
+		}
 
-			if (box.volume() > 1)
+		std::cout << "Unboxing " << box << "\t" << box.score << std::endl;
+
+		int w = box.max.x - box.min.x + 1;
+		int h = box.max.y - box.min.y + 1;
+		int d = box.max.z - box.min.z + 1;
+
+		if (box.volume() > 1)
+		{
+			Point center;
+			center.x = box.min.x + w / 2;
+			center.y = box.min.y + h / 2;
+			center.z = box.min.z + d / 2;
+			int score = center.inrange(bots);
+			int dis = center.distanceTo(Point(0, 0, 0));
+			if (score > bestscore
+				|| (score == bestscore
+					&& (bestdis < 0 || dis < bestdis)))
 			{
-				Point center;
-				center.x = box.min.x + w / 2;
-				center.y = box.min.y + h / 2;
-				center.z = box.min.z + d / 2;
-				int score = center.inrange(bots);
-				int dis = center.distanceTo(Point(0, 0, 0));
-				if (score > bestscore
-					|| (score == bestscore
-						&& (bestdis < 0 || dis < bestdis)))
-				{
-					bestscore = score;
-					bestdis = dis;
-					bestpoint = center;
-					//std::cout << "Best so far: " << bestpoint
-					//	<< " with " << bestscore
-					//	<< " at " << bestdis << std::endl;
-				}
+				bestscore = score;
+				bestdis = dis;
+				bestpoint = center;
+				std::cout << "Best so far: " << bestpoint
+					<< " with " << bestscore
+					<< " at " << bestdis << std::endl;
 			}
+		}
 
-			Box sub;
-			for (int k = 0; k < divisor; k++)
+		Box sub;
+		for (int k = 0; k < divisor; k++)
+		{
+			sub.min.z = box.min.z + int64_t(d) *  k      / divisor;
+			sub.max.z = box.min.z + int64_t(d) * (k + 1) / divisor - 1;
+			if (sub.max.z < sub.min.z) continue;
+
+			for (int j = 0; j < divisor; j++)
 			{
-				sub.min.z = box.min.z + d *  k      / divisor;
-				sub.max.z = box.min.z + d * (k + 1) / divisor - 1;
-				if (sub.max.z < sub.min.z) continue;
+				sub.min.y = box.min.y + int64_t(h) *  j      / divisor;
+				sub.max.y = box.min.y + int64_t(h) * (j + 1) / divisor - 1;
+				if (sub.max.y < sub.min.y) continue;
 
-				for (int j = 0; j < divisor; j++)
+				for (int i = 0; i < divisor; i++)
 				{
-					sub.min.y = box.min.y + h *  j      / divisor;
-					sub.max.y = box.min.y + h * (j + 1) / divisor - 1;
-					if (sub.max.y < sub.min.y) continue;
+					sub.min.x = box.min.x + int64_t(w) *  i      / divisor;
+					sub.max.x = box.min.x + int64_t(w) * (i + 1) / divisor - 1;
+					if (sub.max.x < sub.min.x) continue;
 
-					for (int i = 0; i < divisor; i++)
+					if (sub.volume() == 1)
 					{
-						sub.min.x = box.min.x + w *  i      / divisor;
-						sub.max.x = box.min.x + w * (i + 1) / divisor - 1;
-						if (sub.max.x < sub.min.x) continue;
-
-						if (sub.volume() == 1)
+						int score = sub.min.inrange(bots);
+						int dis = sub.min.distanceTo(Point(0, 0, 0));
+						if (score > bestscore
+							|| (score == bestscore
+								&& (bestdis < 0 || dis < bestdis)))
 						{
-							int score = sub.min.inrange(bots);
-							int dis = sub.min.distanceTo(Point(0, 0, 0));
-							if (score > bestscore
-								|| (score == bestscore
-									&& (bestdis < 0 || dis < bestdis)))
-							{
-								bestscore = score;
-								bestdis = dis;
-								bestpoint = sub.min;
-								//std::cout << "Best so far: " << bestpoint
-								//	<< " with " << bestscore
-								//	<< " at " << bestdis << std::endl;
-							}
+							bestscore = score;
+							bestdis = dis;
+							bestpoint = sub.min;
+							std::cout << "Best so far: " << bestpoint
+								<< " with " << bestscore
+								<< " at " << bestdis << std::endl;
 						}
-						else
+					}
+					else
+					{
+						int score = sub.inrange(bots);
+						int dis = sub.min.distanceTo(Point(0, 0, 0));
+						if (score > bestscore
+							|| (score == bestscore
+								&& (bestdis < 0 || dis < bestdis)))
 						{
-							int score = sub.inrange(bots);
-							int dis = sub.min.distanceTo(Point(0, 0, 0));
-							if (score > bestscore
-								|| (score == bestscore
-									&& (bestdis < 0 || dis < bestdis)))
-							{
-								//std::cout << sub << "\t" << score << std::endl;
-								nextqueue.push_back(sub);
-							}
+							std::cout << sub << "\t" << score << std::endl;
+							sub.score = score;
+							queue.push(sub);
 						}
 					}
 				}
 			}
-		}
-
-		queue.clear();
-		if (!nextqueue.empty())
-		{
-			nextqueue.swap(queue);
 		}
 	}
 

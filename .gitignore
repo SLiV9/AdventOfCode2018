@@ -3,3 +3,5 @@
 gec
 
 callgrind.out.*
+
+*/input*.txt
